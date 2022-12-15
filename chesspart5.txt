@@ -1,0 +1,282 @@
+package chess
+const val num = 96
+var firstDoubleMoveWhite = false
+var firstDoubleMoveBlack = false
+fun columnNum (ch: Char): Int {
+    return ch.toInt() - num
+}
+
+fun drawChessBоard(table: MutableList<MutableList<Char>>) {
+    val tableDraw = table.reversed()
+    println("  +---+---+---+---+---+---+---+---+")
+    for (i in 0..7) {
+        print("${tableDraw[i][0]} ")
+        for (j in 1..8) {
+            print("| ")
+            print(tableDraw[i][j])
+            print(" ")
+        }
+        println("|")
+        println("  +---+---+---+---+---+---+---+---+")
+    }
+
+    print("  ")
+    for (i in 1..8) {
+        print("  ")
+        print(tableDraw[8][i])
+        print(" ")
+    }
+    println()
+}
+fun move(table: MutableList<MutableList<Char>>,cor1: Int,cor2: Int,column1: Int ,column2: Int) {
+    table[cor2][column2] = table[cor1][column1]
+    table[cor1][column1] = ' '
+    drawChessBоard(table)
+}
+fun moveEnpassant(table: MutableList<MutableList<Char>>,cor1: Int,cor2: Int,column1: Int ,column2: Int) {
+    table[cor2][column2] = table[cor1][column1]
+    table[cor1][column1] = ' '
+    table[cor1][column2] = ' '
+    drawChessBоard(table)
+    
+}
+fun playGame(namePlayer1: String, namePlayer2: String,table: MutableList<MutableList<Char>>) {
+    val regex = Regex("[a-h][1-8][a-h][1-8]")
+    var firstPlayer = true
+    while (true) {
+        if (firstPlayer) {
+            println("$namePlayer1's turn:")
+            val input = readln()
+            if (input == "exit") {
+                println("Bye!")
+                break
+            } else if (!regex.matches(input)) println("Invalid Input")
+            else
+            {
+                val game = moveWhite(table, input)
+                if (game == "game") {
+                    firstPlayer = false
+                }
+                else if (game == "win") {
+                    println("White Wins!\nBye!")
+                    break
+                }
+                else { println("Stalemate!\nBye!")
+                    break}
+            }
+        }else {
+            println("$namePlayer2's turn:")
+            val input = readln()
+            if (input == "exit") {
+                println("Bye!")
+                break
+            } else if (!regex.matches(input)) {
+                println("Invalid Input")
+            } else {
+                val game = moveBlack(table, input)
+                if (game == "game") {
+                    firstPlayer = true
+                }
+                else if (game == "win") {
+                    println("Black Wins!\nBye!")
+                    break
+                }
+               /* else if(game == "statement")
+                    println("Stalemate!\nBye!")
+                break
+*/
+            }
+        }
+    }
+}
+
+fun moveWhite(table: MutableList<MutableList<Char>>,input: String): String {
+    val move = input
+    val column1 = columnNum(move[0])
+    val column2 = columnNum(move[2])
+    val cor1 = move[1].toString().toInt()
+    val cor2 = move[3].toString().toInt()
+    when {
+        table[cor1][column1] != 'W' -> {
+            println("No white pawn at ${move[0]}${move[1]}")
+        }
+        cor1 == 7 && cor2 == 8 -> {
+            move(table, cor1, cor2, column1, column1)
+            return "win"
+        }
+        move[0] == move[2] && cor1 == 2 && cor2 - cor1 == 2 && table[cor2][column1] == ' ' ->
+        {   move(table, cor1, cor2, column1, column1)
+            firstDoubleMoveWhite = true
+            return "game"
+        }
+        move[0] == move[2] && cor2 - cor1 == 1 && table[cor2][column1] == ' ' ->
+        {
+            move(table, cor1, cor2, column1, column1)
+            if (isBlackOut(table)) return "stalmente"
+            else {
+                firstDoubleMoveWhite = false
+                return "game"
+            }
+
+        }
+        (move[0] + 1 == move[2] || move[0] - 1 == move[2]) && table[cor2][column2] == 'B' ->
+        {
+            move(table, cor1, cor2, column1, column2)
+            if (isNoPawn(table,'B')) {
+                return "win"
+            }else {
+                firstDoubleMoveWhite = false
+                return "game"
+            }
+        }
+        cor1 == 5 && cor2 == 6 && firstDoubleMoveBlack && move[0] + 1 == move[2]  && table[cor1][column2] == 'B' ->
+        {
+            moveEnpassant(table, cor1, cor2, column1, column2)
+            firstDoubleMoveWhite = false
+            return "game"
+        }
+        cor1 == 5 && cor2 == 6 && firstDoubleMoveBlack && move[0] - 1 == move[2]  && table[cor1][column2] == 'B' ->
+        {
+            moveEnpassant(table, cor1, cor2, column1, column2)
+            firstDoubleMoveWhite = false
+            return "game"
+        }
+
+        else -> {
+            println("Invalid Input")
+        }
+    }
+    return ""
+}
+fun isNoPawn(table: MutableList<MutableList<Char>>, ch: Char): Boolean {
+    var count = 0
+    for (i in 0..table.lastIndex) {
+        if (table[i].contains(ch)) count++
+    }
+    if (count == 0) return true
+    else return false
+}
+fun isBlackOut(table: MutableList<MutableList<Char>>): Boolean {
+    var row = 0
+    var col = 0
+    var count = 0
+    for (i in 0..8) {
+        for (j in 0..8) {
+            if (table[i][j] == 'B') {
+                count++
+                row = i
+                col = j
+
+
+            }
+        }
+    }
+
+    if (count == 1) {
+        return (table[row - 1][col] != ' ' && table[row - 1][col - 1] == ' ')
+    }
+    return false
+}
+fun isWhiteOut(table: MutableList<MutableList<Char>>): Boolean {
+    var row = 0
+    var col = 0
+    var count = 0
+    for (i in 0..8) {
+        for (j in 0..8) {
+            if (table[i][j] == 'W') {
+                count++
+                row = i
+                col = j
+
+
+            }
+        }
+    }
+
+    if (count == 1) {
+        return (table[row - 1][col] != ' ' && table[row - 1][col - 1] == ' ')
+    }
+    return false
+}
+fun moveBlack(table: MutableList<MutableList<Char>>,input: String): String {
+    val move = input
+    val column1 = columnNum(move[0])
+    val column2 = columnNum(move[2])
+    val cor1 = move[1].toString().toInt()
+    val cor2 = move[3].toString().toInt()
+    when {
+        table[cor1][column1] != 'B' -> if (table[cor1][column1] != 'B') {
+            println("No Black pawn at ${move[0]}${move[1]}")
+        }
+        cor2 == 1 && cor1 == 2 -> {
+            move(table, cor1, cor2, column1, column1)
+            return "win"
+        }
+        move[0] == move[2] && cor1 == 7 && (cor1 - cor2) == 2 && table[cor2][column1] == ' ' ->
+        {
+            move(table, cor1, cor2, column1, column1)
+            firstDoubleMoveBlack = true
+            return "game"
+        }
+
+        move[0] == move[2] && cor1 - cor2 == 1  && table[cor2][column1] == ' ' ->
+        {
+            move(table, cor1, cor2, column1, column1)
+            if (isWhiteOut(table)) return "stalmente"
+            else {
+                firstDoubleMoveBlack = false
+                return "game"
+            }
+        }
+
+        cor1 == 4 && cor2 == 3 && firstDoubleMoveWhite && move[0] + 1 == move[2]  && table[cor1][column2] == 'W' ->
+        {
+            moveEnpassant(table, cor1, cor2, column1, column2)
+            firstDoubleMoveBlack = false
+            return "game"
+        }
+        cor1 == 4 && cor2 == 3 && firstDoubleMoveWhite && move[0] - 1 == move[2]  && table[cor1][column2] == 'W' ->
+        {
+            moveEnpassant(table, cor1, cor2, column1, column2)
+            firstDoubleMoveBlack = false
+            return "game"
+        }
+        (move[0] + 1 == move[2] || move[0] - 1 == move[2]) && table[cor2][column2] == 'W' ->
+        {
+            move(table, cor1, cor2, column1, column2)
+            if (isNoPawn(table,'W')) {
+                return "win"
+            }else {
+            firstDoubleMoveBlack = false
+            return "game"
+         }
+        }
+        !((move[0] + 1 == move[2] || move[0] - 1 == move[2]) && table[cor2][column2] == 'W') &&
+                !(move[0] == move[2] && cor1 - cor2 == 1  && table[cor2][column1] == ' ') ->
+        {return "stalemate"}
+        else -> println("Invalid Input")
+    }
+    return ""
+}
+
+fun main(args: Array<String>) {
+    println("Pawns-Only Chess")
+    println("First Player's name:")
+    val namePlayer1 = readln()
+    println("Second Player's name:")
+    val namePlayer2 = readln()
+    val table = mutableListOf(
+        mutableListOf<Char>('0', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'),
+        mutableListOf<Char>('1', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '),
+        mutableListOf<Char>('2', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W'),
+        mutableListOf<Char>('3', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '),
+        mutableListOf<Char>('4', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '),
+        mutableListOf<Char>('5', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '),
+        mutableListOf<Char>('6', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '),
+        mutableListOf<Char>('7', 'B', 'B', 'B', 'B', 'B', 'B', 'B', 'B'),
+        mutableListOf<Char>('8', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '),
+    )
+    drawChessBоard(table)
+    playGame(namePlayer1, namePlayer2, table )
+
+}

@@ -1,0 +1,110 @@
+package chess
+const val num = 96
+fun columnNum (ch: Char): Int {
+    return ch.toInt() - num
+}
+
+fun drawChessBоard(table: MutableList<MutableList<Char>>) {
+    val tableDraw = table.reversed()
+    println("  +---+---+---+---+---+---+---+---+")
+    for (i in 0..7) {
+        print("${tableDraw[i][0]} ")
+        for (j in 1..8) {
+            print("| ")
+            print(tableDraw[i][j])
+            print(" ")
+        }
+        println("|")
+        println("  +---+---+---+---+---+---+---+---+")
+    }
+
+    print("  ")
+    for (i in 1..8) {
+        print("  ")
+        print(tableDraw[8][i])
+        print(" ")
+    }
+    println()
+}
+fun move(table: MutableList<MutableList<Char>>,cor1: Int,cor2: Int,column: Int ) {
+    table[cor2][column] = table[cor1][column]
+    table[cor1][column] = ' '
+    drawChessBоard(table)
+}
+fun playGame(namePlayer1: String, namePlayer2: String,table: MutableList<MutableList<Char>>) {
+    val regex = Regex("[a-h][1-8][a-h][1-8]")
+    var firstPlayer = true
+    while (true) {
+        if (firstPlayer) {
+            println("$namePlayer1's turn:")
+            val input = readln()
+            if (input == "exit") {
+                println("Bye!")
+                break
+            } else if (!regex.matches(input)) println("Invalid Input")
+            else {
+                val move = input
+                val column = columnNum(move[0])
+                val cor1 = move[1].toString().toInt()
+                val cor2 = move[3].toString().toInt()
+                if (table[cor1][column] != 'W') {
+                    println("No white pawn at ${move[0]}${move[1]}")
+                } else if (move[0] == move[2] && cor1 == 2 && (cor2 - cor1) in 1..2 && table[cor2][column] == ' ' ) {
+                    move(table, cor1, cor2, column)
+                    firstPlayer = false
+                } else if (move[0] == move[2] && cor1 > 2 && cor2 - cor1 == 1 && table[cor2][column] == ' ') {
+                    move(table, cor1, cor2, column)
+                    firstPlayer = false
+                } else {
+                    println("Invalid Input")
+                }
+            }
+        } else {
+            println("$namePlayer2's turn:")
+            val input = readln()
+            if (input == "exit") {
+                println("Bye!")
+                break
+            } else if (!regex.matches(input)) {
+                println("Invalid Input")
+            } else {
+                val move = input
+                val column = columnNum(move[0])
+                val cor1 = move[1].toString().toInt()
+                val cor2 = move[3].toString().toInt()
+                if (table[cor1][column] != 'B') {
+                    println("No Black pawn at ${move[0]}${move[1]}")
+                }
+                else if (move[0] == move[2] && cor1 == 7 && (cor1 - cor2) in 1..2 && table[cor2][column] == ' ') {
+                    move(table, cor1, cor2, column)
+                    firstPlayer = true
+                }  else if (move[0] == move[2] && cor1 < 7 && cor1 - cor2 == 1 && table[cor2][column] == ' ') {
+                    move(table, cor1, cor2, column)
+                    firstPlayer = true
+                }else {
+                    println("Invalid Input")
+                }
+            }
+        }
+    }
+}
+fun main(args: Array<String>) {
+    println("Pawns-Only Chess")
+    println("First Player's name:")
+    val namePlayer1 = readln()
+    println("Second Player's name:")
+    val namePlayer2 = readln()
+    val table = mutableListOf(
+        mutableListOf<Char>('0', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'),
+        mutableListOf<Char>('1', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '),
+        mutableListOf<Char>('2', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W'),
+        mutableListOf<Char>('3', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '),
+        mutableListOf<Char>('4', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '),
+        mutableListOf<Char>('5', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '),
+        mutableListOf<Char>('6', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '),
+        mutableListOf<Char>('7', 'B', 'B', 'B', 'B', 'B', 'B', 'B', 'B'),
+        mutableListOf<Char>('8', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '),
+    )
+    drawChessBоard(table)
+    playGame(namePlayer1, namePlayer2, table )
+}
